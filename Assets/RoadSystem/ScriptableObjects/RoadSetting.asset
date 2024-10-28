@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 156d7e0048964529aa7aa555e4081f64, type: 3}
+  m_Name: RoadSetting
+  m_EditorClassIdentifier: 
+  listRoadFiller:
+  - {fileID: 59642711648217016, guid: 975dbb3d90d254d7a9e5f5eceb725c60, type: 3}
+  - {fileID: 59642711648217016, guid: a49f7b5c80e494b1b89d683f108bc8d6, type: 3}
+  - {fileID: 59642711648217016, guid: 89c8d84e8948c4804b24c897a0bc63d2, type: 3}
+  - {fileID: 59642711648217016, guid: cb83108cca3f845af89d4b7a9e93bda5, type: 3}
+  - {fileID: 59642711648217016, guid: 8dd321926c3a84248935ac2f1a63b9ed, type: 3}
+  - {fileID: 59642711648217016, guid: 8c11ff8aedec84fc0937547f80deb412, type: 3}
+  - {fileID: 59642711648217016, guid: bed5772716ab7419d91ca4eda7de9a0f, type: 3}
+  - {fileID: 59642711648217016, guid: 0d618ff4fa8204fe59acb60aa2f8d6ee, type: 3}
+  tilePrefab: {fileID: 3360528245988300995, guid: 6b226e7f61dee4b07b7e545d8d21a3f7, type: 3}

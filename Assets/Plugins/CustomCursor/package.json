@@ -1,0 +1,13 @@
+{
+  "name": "com.bilalemregrkn.customcursor",
+  "version": "1.0.0",
+  "displayName": "Cursor System",
+  "unity": "2021.3",
+  "keywords": [
+    "Custom Cursor"
+  ],
+  "author": {
+    "name": "bilalemregrkn",
+    "email": "bilalemregrkn@gmail.com"
+  }
+}
