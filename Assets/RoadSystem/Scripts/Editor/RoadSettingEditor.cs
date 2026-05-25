@@ -1,4 +1,3 @@
-#if UNITY_EDITOR
 using System.Collections.Generic;
 using RoadSystem.Road;
 using UnityEditor;
@@ -55,4 +54,3 @@ namespace RoadSystem.Editor
         }
     }
 }
-#endif

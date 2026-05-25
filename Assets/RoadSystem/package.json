@@ -1,0 +1,16 @@
+{
+  "name": "com.bilalemre.roadsystem",
+  "version": "1.1.0",
+  "displayName": "Road System",
+  "description": "A grid-based road drawing system with automatic shape detection (straight, corner, T-junction, S-curve, U-turn) and a layered rendering pipeline.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Bilal Emre Gürkan"
+  },
+  "keywords": [
+    "road",
+    "grid",
+    "drawing",
+    "tilemap"
+  ]
+}
