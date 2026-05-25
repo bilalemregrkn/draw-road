@@ -134,10 +134,3 @@ namespace RoadSystem.Grid
         }
     }
 }
-
-namespace RoadSystem.EventBus
-{
-    internal class Instance
-    {
-    }
-}

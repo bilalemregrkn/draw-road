@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace RoadSystem.Scripts.Runtime.Road
+namespace RoadSystem.Road
 {
     public class RoadFiller : MonoBehaviour
     {

@@ -3,7 +3,7 @@ using RoadSystem.Grid;
 using UnityEngine;
 
 
-namespace RoadSystem.Scripts.Runtime.Road
+namespace RoadSystem.Road
 {
     [CreateAssetMenu(menuName = "Scriptable Objects/Setting/RoadSetting", fileName = "RoadSetting", order = 0)]
     public class RoadSetting : ScriptableObject
