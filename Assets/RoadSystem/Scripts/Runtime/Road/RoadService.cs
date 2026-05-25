@@ -7,17 +7,16 @@ namespace RoadSystem.Road
 {
     public class RoadService : MonoBehaviour
     {
-        public RoadShapeManager ShapeManager => _roadShapeManager;
+        public RoadLayerResolver ShapeManager => _roadLayerResolver;
         public RoadSetting Setting => setting;
 
-        private RoadFactory _roadFactory;
-        private readonly List<RoadFiller> _listFiller = new List<RoadFiller>();
-        private GameObject _fillers;
-        private RoadShapeManager _roadShapeManager;
+        private TileFactory _tileFactory;
+        private readonly List<RoadPiece> _listPiece = new List<RoadPiece>();
+        private GameObject _piecesParent;
+        private RoadLayerResolver _roadLayerResolver;
 
         [SerializeField] private RoadSetting setting;
-        [SerializeField] private Grid.Grid grid;
-
+        [SerializeField] private GridController grid;
 
         private void Start()
         {
@@ -26,27 +25,27 @@ namespace RoadSystem.Road
 
         private void Initialize()
         {
-            _roadFactory = new RoadFactory();
-            _roadShapeManager = new RoadShapeManager(this, grid);
+            _tileFactory = new TileFactory();
+            _roadLayerResolver = new RoadLayerResolver(this, grid);
         }
 
         public void ReleaseTile()
         {
-            foreach (RoadFiller item in _listFiller)
+            foreach (RoadPiece item in _listPiece)
                 item.Release();
         }
 
-        public RoadFiller InitializeRoadPiece(RoadType roadType, Tile tile)
+        public RoadPiece InitializeRoadPiece(RoadShape roadShape, Tile tile)
         {
             List<Vector2> directions = tile.GetNeighbourDirection();
 
             if (directions.Count == 0)
                 return null;
-            if (roadType == RoadType.Invisible)
+            if (roadShape == RoadShape.Invisible)
                 return null;
 
             var coordinate = tile.coordinate;
-            if (roadType == RoadType.ShapeBigCorner)
+            if (roadShape == RoadShape.ShapeBigCorner)
             {
                 var total =
                     tile.GetNeighbour(directions[0]).coordinate +
@@ -55,48 +54,45 @@ namespace RoadSystem.Road
                 coordinate = total * .5f;
             }
 
-            var filler = GetOrCreateFiller(roadType);
-            var angle = GetAngle(tile, roadType);
+            var piece = GetOrCreatePiece(roadShape);
+            var angle = GetAngle(tile, roadShape);
 
             var flip = false;
-            if (roadType == RoadType.ShapeS)
+            if (roadShape == RoadShape.ShapeS)
                 flip = GetFlipForS(tile);
-            filler.Initialize(coordinate, angle, flip);
-            if (_fillers == null)
-                _fillers = new GameObject("RoadFillers");
-            filler.transform.SetParent(_fillers.transform);
-            return filler;
+            piece.Initialize(coordinate, angle, flip);
+            if (_piecesParent == null)
+                _piecesParent = new GameObject("RoadPieces");
+            piece.transform.SetParent(_piecesParent.transform);
+            return piece;
         }
 
-        private RoadFiller GetOrCreateFiller(RoadType type)
+        private RoadPiece GetOrCreatePiece(RoadShape shape)
         {
-            var list = _listFiller.Where(x => x.type == type).ToList();
+            var list = _listPiece.Where(x => x.type == shape).ToList();
             list = list.Where(x => !x.Initialized).ToList();
             if (list.Count != 0)
-            {
-                var piece = list[0];
-                return piece;
-            }
+                return list[0];
 
-            var prefab = setting.GetPrefabRoadFiller(type);
-            var filler = _roadFactory.Create(prefab);
-            _listFiller.Add(filler);
-            return filler;
+            var prefab = setting.GetPrefabRoadPiece(shape);
+            var piece = _tileFactory.Create(prefab);
+            _listPiece.Add(piece);
+            return piece;
         }
 
-        private int GetAngle(Tile tile, RoadType type)
+        private int GetAngle(Tile tile, RoadShape shape)
         {
             List<Vector2> directions = tile.GetNeighbourDirection();
-            return type switch
+            return shape switch
             {
-                RoadType.DeadEnd => GetAngleYForDeadEnd(directions[0]),
-                RoadType.Straight => GetAngleYForStraight(directions[0], directions[1]),
-                RoadType.ShapeBigCorner => GetAngleYForCorner(directions[0], directions[1]),
-                RoadType.Corner => GetAngleYForCorner(directions[0], directions[1]),
-                RoadType.ThreeWay => GetAngleYForT(directions[0], directions[1], directions[2]),
-                RoadType.FourWay => 0,
-                RoadType.ShapeU => GetAngleYForU(tile),
-                RoadType.ShapeS => GetAngleYForS(tile),
+                RoadShape.DeadEnd => GetAngleYForDeadEnd(directions[0]),
+                RoadShape.Straight => GetAngleYForStraight(directions[0], directions[1]),
+                RoadShape.ShapeBigCorner => GetAngleYForCorner(directions[0], directions[1]),
+                RoadShape.Corner => GetAngleYForCorner(directions[0], directions[1]),
+                RoadShape.ThreeWay => GetAngleYForT(directions[0], directions[1], directions[2]),
+                RoadShape.FourWay => 0,
+                RoadShape.ShapeU => GetAngleYForU(tile),
+                RoadShape.ShapeS => GetAngleYForS(tile),
                 _ => 0
             };
         }
@@ -135,7 +131,6 @@ namespace RoadSystem.Road
             bool IsDirection(Vector2 direction) => direction == directionA || direction == directionB;
 
             bool isHorizontal = IsDirection(Vector2.left) && IsDirection(Vector2.right);
-            bool isVertical = IsDirection(Vector2.up) && IsDirection(Vector2.down);
 
             return isHorizontal ? 0 : 90;
         }
@@ -195,13 +190,11 @@ namespace RoadSystem.Road
 
         private int GetAngleYForS(Tile tile)
         {
-            var firstDirection = Vector2.zero;
-            var secondDirection = Vector2.zero;
-
-            firstDirection = tile.GetNeighbourDirection().First();
+            var firstDirection = tile.GetNeighbourDirection().First();
             var neighbour = tile.GetNeighbour(firstDirection);
             var neighbourDirection = neighbour.GetNeighbourDirection();
 
+            var secondDirection = Vector2.zero;
             foreach (var direction in neighbourDirection)
             {
                 if (neighbour.GetNeighbour(direction) == tile)
@@ -228,22 +221,19 @@ namespace RoadSystem.Road
             if ((fLeft && sDown) || (fRight && sUp)) result = 0;
             if ((fUp && sLeft) || (fDown && sRight)) result = 90;
 
-            if ((fUp && sRight) || (fDown && sLeft)) result = 90; //-1
-            if ((fLeft && sUp) || (fRight && sDown)) result = 0; //-1
-
+            if ((fUp && sRight) || (fDown && sLeft)) result = 90;
+            if ((fLeft && sUp) || (fRight && sDown)) result = 0;
 
             return result;
         }
 
         private bool GetFlipForS(Tile tile)
         {
-            var firstDirection = Vector2.zero;
-            var secondDirection = Vector2.zero;
-
-            firstDirection = tile.GetNeighbourDirection().First();
+            var firstDirection = tile.GetNeighbourDirection().First();
             var neighbour = tile.GetNeighbour(firstDirection);
             var neighbourDirection = neighbour.GetNeighbourDirection();
 
+            var secondDirection = Vector2.zero;
             foreach (var direction in neighbourDirection)
             {
                 if (neighbour.GetNeighbour(direction) == tile)

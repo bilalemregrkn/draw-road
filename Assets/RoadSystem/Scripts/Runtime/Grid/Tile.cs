@@ -13,16 +13,16 @@ namespace RoadSystem.Grid
         public Tile right;
 
         RoadService _roadService;
-        private RoadFiller _filler;
+        private RoadPiece _piece;
         public bool Deleted { get; set; }
 
         private bool _initialized;
-        
-        public void Initialize(Vector2 paramCoordinate,RoadService service)
+
+        public void Initialize(Vector2 paramCoordinate, RoadService service)
         {
             if (_initialized)
                 return;
-            
+
             _roadService = service;
 
             _initialized = true;
@@ -31,7 +31,7 @@ namespace RoadSystem.Grid
             myTransform.position = new Vector3(coordinate.x, 0, coordinate.y);
             myTransform.name = $"Tile [{paramCoordinate.x},{paramCoordinate.y}]";
         }
-        
+
         public List<Vector2> GetNeighbourDirection()
         {
             var result = new List<Vector2>();
@@ -77,56 +77,48 @@ namespace RoadSystem.Grid
             return result;
         }
 
-        public TileType GetTileType()
+        public TileTopology GetTileTopology()
         {
-            return GetTileType(GetNeighbourDirection());
+            return GetTileTopology(GetNeighbourDirection());
         }
 
-        private TileType GetTileType(List<Vector2> directions)
+        private TileTopology GetTileTopology(List<Vector2> directions)
         {
             var amount = directions.Count;
             switch (amount)
             {
                 case 1:
-                    return TileType.OneNeighbour;
+                    return TileTopology.OneNeighbour;
                 case 2:
                 {
                     var horizontal = directions.Contains(Vector2.right) && directions.Contains(Vector2.left);
                     var vertical = directions.Contains(Vector2.up) && directions.Contains(Vector2.down);
 
-                    if (horizontal || vertical)
-                    {
-                        return TileType.TwoNeighbour180;
-                    }
-                    else
-                    {
-                        return TileType.TwoNeighbour90;
-                    }
+                    return (horizontal || vertical) ? TileTopology.TwoNeighbour180 : TileTopology.TwoNeighbour90;
                 }
                 case 3:
-                    return TileType.ThreeNeighbour;
+                    return TileTopology.ThreeNeighbour;
                 case 4:
-                    return TileType.FourNeighbour;
+                    return TileTopology.FourNeighbour;
                 default:
-                    return TileType.OneNeighbour;
+                    return TileTopology.OneNeighbour;
             }
         }
 
-        public void UpdateDisplayPiece(RoadType type)
+        public void UpdateDisplayPiece(RoadShape shape)
         {
-            _filler = _roadService.InitializeRoadPiece(type, this);
+            _piece = _roadService.InitializeRoadPiece(shape, this);
             UpdateDisplayAlpha();
         }
 
-
         public void ReleaseRoad()
         {
-            _filler?.Release();
+            _piece?.Release();
         }
 
         private void UpdateDisplayAlpha()
         {
-            _filler?.SetAlpha(1);
+            _piece?.SetAlpha(1);
         }
     }
 }

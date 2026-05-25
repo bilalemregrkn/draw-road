@@ -6,23 +6,23 @@ using UnityEngine;
 
 namespace RoadSystem.Road
 {
-    public class RoadShapeManager
+    public class RoadLayerResolver
     {
-        private List<RoadShapeData> _layer2;
-        private List<RoadShapeData> _layer3;
+        private List<ShapeLayerData> _layer2;
+        private List<ShapeLayerData> _layer3;
 
-        private readonly Grid.Grid _gridService;
+        private readonly GridController _gridService;
         private readonly RoadService _roadService;
 
-        public bool IgnoreLayer2; //For Test
-        public bool IgnoreLayer3; //For Test
+        public bool IgnoreLayer2;
+        public bool IgnoreLayer3;
 
-        public RoadShapeManager(RoadService service, Grid.Grid gridService)
+        public RoadLayerResolver(RoadService service, GridController gridService)
         {
             _roadService = service;
             _gridService = gridService;
-            _layer2 = new List<RoadShapeData>();
-            _layer3 = new List<RoadShapeData>();
+            _layer2 = new List<ShapeLayerData>();
+            _layer3 = new List<ShapeLayerData>();
         }
 
         public void RefreshDisplay()
@@ -32,16 +32,13 @@ namespace RoadSystem.Road
             UpdateDisplay();
         }
 
-
         private void UpdateLayers()
         {
-            _layer2 = new List<RoadShapeData>();
-            _layer3 = new List<RoadShapeData>();
-
+            _layer2 = new List<ShapeLayerData>();
+            _layer3 = new List<ShapeLayerData>();
 
             if (IgnoreLayer2)
                 return;
-
 
             foreach (var pair in _gridService.Tiles)
             {
@@ -50,39 +47,37 @@ namespace RoadSystem.Road
                 {
                     var center = tile;
                     var partOfShapes = tile.GetNeighbours();
-                    var data = new RoadShapeData(partOfShapes, center);
+                    var data = new ShapeLayerData(partOfShapes, center);
                     _layer2.Add(data);
                 }
             }
 
-
             if (IgnoreLayer3)
                 return;
 
-            foreach (RoadShapeData shape in _layer2)
+            foreach (ShapeLayerData shape in _layer2)
             {
                 var connectShape = GetConnectLayer2Shape(shape);
                 if (connectShape != null)
                 {
-                    var layer3Data = CreateLayer3Shape(connectShape ?? new RoadShapeData(), shape);
+                    var layer3Data = CreateLayer3Shape(connectShape ?? new ShapeLayerData(), shape);
                     if (!_layer3.Contains(layer3Data))
                         _layer3.Add(layer3Data);
                 }
             }
         }
 
-
         private void UpdateDisplay()
         {
-            //Show layer 1
+            // Layer 1 — basic tiles
             foreach (var pair in _gridService.Tiles)
             {
                 var tile = pair.Value;
-                var type = GetRoadType(tile);
-                tile.UpdateDisplayPiece(type);
+                var shape = GetRoadShape(tile);
+                tile.UpdateDisplayPiece(shape);
             }
 
-            //Show layer 3
+            // Layer 3 — S/U shapes
             foreach (var shapeData in _layer3)
             {
                 if (AnyTouchOtherLayer3(shapeData))
@@ -96,18 +91,18 @@ namespace RoadSystem.Road
                 }
 
                 var hasAllDirection = HasAllDirections(neighboursDirections);
-                var roadType = hasAllDirection ? RoadType.ShapeS : RoadType.ShapeU;
+                var roadShape = hasAllDirection ? RoadShape.ShapeS : RoadShape.ShapeU;
 
                 shapeData.center.ReleaseRoad();
-                shapeData.center.UpdateDisplayPiece(roadType);
+                shapeData.center.UpdateDisplayPiece(roadShape);
                 foreach (Tile tile in shapeData.partOfShapes)
                 {
                     tile.ReleaseRoad();
-                    tile.UpdateDisplayPiece(RoadType.Invisible);
+                    tile.UpdateDisplayPiece(RoadShape.Invisible);
                 }
             }
 
-            //Show layer 2
+            // Layer 2 — big corners
             foreach (var shapeData in _layer2)
             {
                 if (AnyTouchOtherLayer2(shapeData))
@@ -117,11 +112,11 @@ namespace RoadSystem.Road
                     continue;
 
                 shapeData.center.ReleaseRoad();
-                shapeData.center.UpdateDisplayPiece(RoadType.ShapeBigCorner);
+                shapeData.center.UpdateDisplayPiece(RoadShape.ShapeBigCorner);
                 foreach (Tile tile in shapeData.partOfShapes)
                 {
                     tile.ReleaseRoad();
-                    tile.UpdateDisplayPiece(RoadType.Invisible);
+                    tile.UpdateDisplayPiece(RoadShape.Invisible);
                 }
             }
         }
@@ -136,9 +131,9 @@ namespace RoadSystem.Road
             return hasUp && hasLeft && hasRight && hasDown;
         }
 
-        private bool AnyTouchOtherLayer2(RoadShapeData data)
+        private bool AnyTouchOtherLayer2(ShapeLayerData data)
         {
-            foreach (RoadShapeData shape in _layer2)
+            foreach (ShapeLayerData shape in _layer2)
             {
                 if (data.center == shape.center)
                     continue;
@@ -153,9 +148,9 @@ namespace RoadSystem.Road
             return false;
         }
 
-        private bool AnyTouchOtherLayer3(RoadShapeData data)
+        private bool AnyTouchOtherLayer3(ShapeLayerData data)
         {
-            foreach (RoadShapeData shape in _layer3)
+            foreach (ShapeLayerData shape in _layer3)
             {
                 if (data.center == shape.center)
                     continue;
@@ -172,18 +167,14 @@ namespace RoadSystem.Road
 
         public void OnDrawGizmos()
         {
-            foreach (RoadShapeData shape in _layer2)
-            {
+            foreach (ShapeLayerData shape in _layer2)
                 DrawShape(shape, Color.green, .33f);
-            }
 
-            foreach (RoadShapeData shape in _layer3)
-            {
+            foreach (ShapeLayerData shape in _layer3)
                 DrawShape(shape, Color.red, .44f);
-            }
         }
 
-        private void DrawShape(RoadShapeData data, Color color, float scale = 1)
+        private void DrawShape(ShapeLayerData data, Color color, float scale = 1)
         {
             Gizmos.color = color;
 
@@ -194,7 +185,7 @@ namespace RoadSystem.Road
             }
         }
 
-        private RoadShapeData CreateLayer3Shape(RoadShapeData data1, RoadShapeData data2)
+        private ShapeLayerData CreateLayer3Shape(ShapeLayerData data1, ShapeLayerData data2)
         {
             var center = GetCommonLayer2Tile(data1, data2);
 
@@ -217,10 +208,10 @@ namespace RoadSystem.Road
 
             allTile.Add(data2.center);
 
-            return new RoadShapeData(allTile, center);
+            return new ShapeLayerData(allTile, center);
         }
 
-        private Tile GetCommonLayer2Tile(RoadShapeData data1, RoadShapeData data2)
+        private Tile GetCommonLayer2Tile(ShapeLayerData data1, ShapeLayerData data2)
         {
             var tempAllPartOfShapes = new List<Tile>(data1.partOfShapes);
             tempAllPartOfShapes.AddRange(data2.partOfShapes);
@@ -232,23 +223,19 @@ namespace RoadSystem.Road
                 .First();
         }
 
-        private RoadShapeData? GetConnectLayer2Shape(RoadShapeData originData)
+        private ShapeLayerData? GetConnectLayer2Shape(ShapeLayerData originData)
         {
-            foreach (RoadShapeData otherData in _layer2)
+            foreach (ShapeLayerData otherData in _layer2)
             {
                 if (otherData.center == originData.center)
-                {
                     return null;
-                }
 
                 foreach (var otherTile in otherData.partOfShapes)
                 {
                     foreach (var originTile in originData.partOfShapes)
                     {
                         if (originTile == otherTile)
-                        {
                             return otherData;
-                        }
                     }
                 }
             }
@@ -258,12 +245,10 @@ namespace RoadSystem.Road
 
         private bool IsBigCorner(Tile tile)
         {
-            var tileType = tile.GetTileType();
+            var topology = tile.GetTileTopology();
             var directions = tile.GetNeighbourDirection();
-            if (tileType != TileType.TwoNeighbour90)
-            {
+            if (topology != TileTopology.TwoNeighbour90)
                 return false;
-            }
 
             foreach (var direction in directions)
             {
@@ -271,7 +256,7 @@ namespace RoadSystem.Road
                 var nextNextTile = nextTile.GetNeighbour(direction);
 
                 var isNullNextNext = nextNextTile == null;
-                var isStraightNext = nextTile.GetTileType() == TileType.TwoNeighbour180;
+                var isStraightNext = nextTile.GetTileTopology() == TileTopology.TwoNeighbour180;
                 if (isNullNextNext || !isStraightNext)
                     return false;
             }
@@ -279,12 +264,10 @@ namespace RoadSystem.Road
             return true;
         }
 
-        public RoadType GetRoadType(Tile tile)
+        public RoadShape GetRoadShape(Tile tile)
         {
-            var tileType = tile.GetTileType();
-            var roadType = tileType.ToRoadType();
-            return roadType;
+            var topology = tile.GetTileTopology();
+            return topology.ToRoadShape();
         }
     }
-
 }

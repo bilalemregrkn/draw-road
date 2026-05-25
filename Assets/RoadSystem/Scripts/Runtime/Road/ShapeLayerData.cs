@@ -5,12 +5,12 @@ using RoadSystem.Grid;
 namespace RoadSystem.Road
 {
     [Serializable]
-    public struct RoadShapeData
+    public struct ShapeLayerData
     {
         public List<Tile> partOfShapes;
         public Tile center;
 
-        public RoadShapeData(List<Tile> partOfShapes, Tile center)
+        public ShapeLayerData(List<Tile> partOfShapes, Tile center)
         {
             this.partOfShapes = partOfShapes;
             this.center = center;

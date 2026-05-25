@@ -1,6 +1,6 @@
 namespace RoadSystem
 {
-    public enum RoadType
+    public enum RoadShape
     {
         Straight,
         DeadEnd,

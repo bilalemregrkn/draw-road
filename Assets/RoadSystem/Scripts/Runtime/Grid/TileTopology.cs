@@ -1,6 +1,6 @@
 namespace RoadSystem.Grid
 {
-    public enum TileType
+    public enum TileTopology
     {
         OneNeighbour,
         TwoNeighbour180,

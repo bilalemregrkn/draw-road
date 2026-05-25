@@ -6,13 +6,13 @@ using UnityEngine;
 
 namespace RoadSystem.Grid
 {
-    public class Grid : MonoBehaviour
+    public class GridController : MonoBehaviour
     {
         public readonly Dictionary<Vector2, Tile> Tiles = new Dictionary<Vector2, Tile>();
         public readonly List<Tile> ListTileDraft = new List<Tile>();
         public Tile LastTile { get; private set; }
         private GameObject _parent;
-        private GridFactory _gridFactory;
+        private TileFactory _tileFactory;
 
         [SerializeField] private float gridScale = 2;
         [SerializeField] private RoadService roadService;
@@ -42,16 +42,15 @@ namespace RoadSystem.Grid
         private void OnDraw(OnDragSignal signal)
         {
             var position = signal.Position;
-            var slotPosition = GridUtility.RoundToNearest(position, gridScale);
+            var slotPosition = GridMath.RoundToNearest(position, gridScale);
             var coordinate = new Vector2(slotPosition.x, slotPosition.z);
             CreateTileDraft(coordinate, true);
         }
 
         private void Initialize()
         {
-            _gridFactory = new GridFactory();
+            _tileFactory = new TileFactory();
         }
-
 
         public Tile GetTile(Vector2 coordinate)
         {
@@ -66,7 +65,7 @@ namespace RoadSystem.Grid
                 return Tiles[coordinate];
 
             var tilePrefab = roadService.Setting.TilePrefab;
-            var tile = _gridFactory.CreateTile(tilePrefab);
+            var tile = _tileFactory.CreateTile(tilePrefab);
             if (_parent == null)
                 _parent = new GameObject("Grid");
             tile.transform.SetParent(_parent.transform);
@@ -98,7 +97,6 @@ namespace RoadSystem.Grid
 
             roadService.ShapeManager.RefreshDisplay();
         }
-
 
         private void ConnectThem(Tile tileA, Tile tileB)
         {

@@ -2,9 +2,9 @@ using UnityEngine;
 
 namespace RoadSystem.Road
 {
-    public class RoadFiller : MonoBehaviour
+    public class RoadPiece : MonoBehaviour
     {
-        public RoadType type;
+        public RoadShape type;
         public bool Initialized { get; private set; }
 
         [SerializeField] private Transform pivotRotate;

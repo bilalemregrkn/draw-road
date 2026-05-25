@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 
 namespace RoadSystem.Draw
 {
-    public class DrawTool : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler
+    public class RoadDrawInput : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler
     {
         private Camera _mainCamera;
 

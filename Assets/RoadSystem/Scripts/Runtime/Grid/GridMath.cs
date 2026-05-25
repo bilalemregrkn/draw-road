@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RoadSystem.Grid
 {
-    public static class GridUtility
+    public static class GridMath
     {
         public static float RoundToNearest(float value, float scale, float offset = 0)
         {
